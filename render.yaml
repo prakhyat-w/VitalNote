@@ -4,42 +4,27 @@ services:
     name: vitalnote-web
     runtime: docker
     dockerfilePath: ./docker/Dockerfile
+    dockerContext: .
     plan: free
+    healthCheckPath: /health/
     envVars:
       - key: APP_ROLE
         value: web
       - key: DJANGO_SETTINGS_MODULE
         value: config.settings.production
       - key: SECRET_KEY
-        generateValue: true
+        sync: false
       - key: DEBUG
         value: "False"
-      - fromGroup: vitalnote-env
-
-  # ── Worker (Celery) ─────────────────────────────────────────────────────────
-  - type: worker
-    name: vitalnote-worker
-    runtime: docker
-    dockerfilePath: ./docker/Dockerfile
-    plan: free
-    envVars:
-      - key: APP_ROLE
-        value: worker
-      - key: DJANGO_SETTINGS_MODULE
-        value: config.settings.production
-      - key: SECRET_KEY
+      - key: ALLOWED_HOSTS
         sync: false
-      - fromGroup: vitalnote-env
-
-# ── Shared Environment Variables ─────────────────────────────────────────────
-envVarGroups:
-  - name: vitalnote-env
-    envVars:
       - key: DATABASE_URL
         sync: false
       - key: REDIS_URL
         sync: false
-      - key: ALLOWED_HOSTS
+      - key: ASSEMBLYAI_API_KEY
+        sync: false
+      - key: GROQ_API_KEY
         sync: false
       - key: USE_R2
         value: "True"
@@ -51,7 +36,42 @@ envVarGroups:
         sync: false
       - key: R2_ENDPOINT_URL
         sync: false
+      - key: R2_PUBLIC_URL
+        sync: false
+
+  # ── Worker (Celery) ─────────────────────────────────────────────────────────
+  - type: worker
+    name: vitalnote-worker
+    runtime: docker
+    dockerfilePath: ./docker/Dockerfile
+    dockerContext: .
+    plan: free
+    envVars:
+      - key: APP_ROLE
+        value: worker
+      - key: DJANGO_SETTINGS_MODULE
+        value: config.settings.production
+      - key: SECRET_KEY
+        sync: false
+      - key: DEBUG
+        value: "False"
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false
       - key: ASSEMBLYAI_API_KEY
         sync: false
       - key: GROQ_API_KEY
+        sync: false
+      - key: USE_R2
+        value: "True"
+      - key: R2_ACCESS_KEY_ID
+        sync: false
+      - key: R2_SECRET_ACCESS_KEY
+        sync: false
+      - key: R2_BUCKET_NAME
+        sync: false
+      - key: R2_ENDPOINT_URL
+        sync: false
+      - key: R2_PUBLIC_URL
         sync: false
