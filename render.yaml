@@ -6,7 +6,6 @@ services:
     dockerfilePath: ./docker/Dockerfile
     dockerContext: .
     plan: free
-    healthCheckPath: /health/
     envVars:
       - key: DJANGO_SETTINGS_MODULE
         value: config.settings.production

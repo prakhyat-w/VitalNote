@@ -15,24 +15,16 @@ Detected entity types and their replacement tags:
 """
 
 import logging
+import threading
 
-from presidio_analyzer import AnalyzerEngine
-from presidio_analyzer.nlp_engine import NlpEngineProvider
-from presidio_anonymizer import AnonymizerEngine
 from presidio_anonymizer.entities import OperatorConfig
 
 logger = logging.getLogger(__name__)
 
-# Explicitly use en_core_web_sm (pre-installed in Docker image) instead of
-# Presidio's default en_core_web_lg, which would trigger a 400 MB download.
-_nlp_engine = NlpEngineProvider(nlp_configuration={
-    "nlp_engine_name": "spacy",
-    "models": [{"lang_code": "en", "model_name": "en_core_web_sm"}],
-}).create_engine()
-
-# Initialise once at module load — these are heavy objects
-_analyzer = AnalyzerEngine(nlp_engine=_nlp_engine)
-_anonymizer = AnonymizerEngine()
+# Heavy objects are lazy-loaded on first use so gunicorn workers boot fast.
+_lock = threading.Lock()
+_analyzer = None
+_anonymizer = None
 
 # Replacement tags for each entity type
 _OPERATORS: dict[str, OperatorConfig] = {
@@ -49,6 +41,27 @@ _OPERATORS: dict[str, OperatorConfig] = {
 }
 
 
+def _get_engines():
+    """Return (analyzer, anonymizer), initialising them on first call."""
+    global _analyzer, _anonymizer
+    if _analyzer is None:
+        with _lock:
+            if _analyzer is None:  # double-checked locking
+                from presidio_analyzer import AnalyzerEngine
+                from presidio_analyzer.nlp_engine import NlpEngineProvider
+                from presidio_anonymizer import AnonymizerEngine
+
+                logger.info("Initialising Presidio + spaCy (first use)…")
+                nlp_engine = NlpEngineProvider(nlp_configuration={
+                    "nlp_engine_name": "spacy",
+                    "models": [{"lang_code": "en", "model_name": "en_core_web_sm"}],
+                }).create_engine()
+                _analyzer = AnalyzerEngine(nlp_engine=nlp_engine)
+                _anonymizer = AnonymizerEngine()
+                logger.info("Presidio + spaCy ready.")
+    return _analyzer, _anonymizer
+
+
 def redact_pii(text: str) -> str:
     """
     Analyse text for PII and return a version with all detected entities
@@ -57,7 +70,8 @@ def redact_pii(text: str) -> str:
     if not text:
         return text
 
-    results = _analyzer.analyze(text=text, language="en")
+    analyzer, anonymizer = _get_engines()
+    results = analyzer.analyze(text=text, language="en")
 
     if not results:
         logger.debug("Presidio found no PII entities — returning original text.")
@@ -65,7 +79,7 @@ def redact_pii(text: str) -> str:
 
     logger.debug(f"Presidio detected {len(results)} PII entity/ies.")
 
-    anonymized = _anonymizer.anonymize(
+    anonymized = anonymizer.anonymize(
         text=text,
         analyzer_results=results,
         operators=_OPERATORS,
