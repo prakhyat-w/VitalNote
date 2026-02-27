@@ -16,6 +16,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     fonts-dejavu-core \
     # Build tools
     gcc \
+    # Process manager (runs gunicorn + celery together)
+    supervisor \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -30,7 +32,10 @@ RUN python -m spacy download en_core_web_sm
 # ── Application code ──────────────────────────────────────────────────────────
 COPY . .
 
-# ── Entrypoint ────────────────────────────────────────────────────────────────
+# ── Supervisor config ─────────────────────────────────────────────────────────
+COPY docker/supervisord.conf /etc/supervisor/conf.d/vitalnote.conf
+
+# ── Entrypoint (migrations + static, then supervisord) ────────────────────────
 COPY docker/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
