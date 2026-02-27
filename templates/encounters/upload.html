@@ -5,33 +5,33 @@
 <div class="max-w-2xl mx-auto">
 
   <div class="mb-8">
-    <h1 class="text-2xl font-bold text-slate-800">New Consultation</h1>
+    <h1 class="text-2xl font-bold text-white">New Consultation</h1>
     <p class="text-sm text-slate-500 mt-1">Upload a recording or use your microphone to generate a SOAP note.</p>
   </div>
 
   <!-- Info banner -->
-  <div class="mb-6 flex items-start gap-3 bg-blue-50 border border-blue-200 rounded-lg p-4">
-    <svg class="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+  <div class="mb-6 flex items-start gap-3 bg-indigo-500/10 border border-indigo-500/20 rounded-lg p-4">
+    <svg class="w-5 h-5 text-indigo-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
         d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
     </svg>
-    <p class="text-sm text-blue-700">
-      <strong>Privacy notice:</strong> All transcripts are automatically scanned for PII
+    <p class="text-sm text-indigo-300">
+      <strong class="text-indigo-200">Privacy notice:</strong> All transcripts are automatically scanned for PII
       (names, dates, contact details) and redacted before SOAP note generation.
       Do not upload real patient recordings without proper consent.
     </p>
   </div>
 
   <!-- Upload card -->
-  <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-8">
+  <div class="glass rounded-xl p-8">
     <form id="upload-form">
       {% csrf_token %}
 
       <!-- Tab switcher -->
-      <div class="flex gap-1 border-b border-slate-200 mb-6">
+      <div class="flex gap-1 border-b border-white/[0.08] mb-6">
         <button type="button" id="tab-btn-upload"
           class="flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2
-                 border-blue-500 text-blue-600 -mb-px">
+                 border-indigo-500 text-indigo-400 -mb-px">
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
@@ -40,7 +40,7 @@
         </button>
         <button type="button" id="tab-btn-record"
           class="flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2
-                 border-transparent text-slate-500 hover:text-slate-700 -mb-px transition-colors">
+                 border-transparent text-slate-500 hover:text-slate-300 -mb-px transition-colors">
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/>
@@ -56,18 +56,18 @@
       <!-- ── Upload tab ──────────────────────────────────────────────────── -->
       <div id="tab-upload">
         <div id="drop-zone"
-             class="border-2 border-dashed border-slate-300 rounded-xl p-12 text-center cursor-pointer
-                    hover:border-blue-400 hover:bg-blue-50 transition-all duration-200 group">
+             class="border-2 border-dashed border-white/[0.1] rounded-xl p-12 text-center cursor-pointer
+                    hover:border-indigo-500/50 hover:bg-indigo-500/5 transition-all duration-200 group">
           <div class="flex flex-col items-center gap-3">
-            <div class="w-14 h-14 bg-slate-100 group-hover:bg-blue-100 rounded-full flex items-center justify-center transition-colors">
-              <svg class="w-7 h-7 text-slate-400 group-hover:text-blue-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div class="w-14 h-14 bg-white/[0.05] group-hover:bg-indigo-500/15 rounded-full flex items-center justify-center transition-colors">
+              <svg class="w-7 h-7 text-slate-500 group-hover:text-indigo-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                   d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
               </svg>
             </div>
             <div>
-              <p class="text-slate-600 font-medium">Click to browse or drag &amp; drop</p>
-              <p class="text-slate-400 text-sm mt-1">MP3, WAV, M4A, WebM — max 25 MB</p>
+              <p class="text-slate-300 font-medium">Click to browse or drag &amp; drop</p>
+              <p class="text-slate-600 text-sm mt-1">MP3, WAV, M4A, WebM — max 25 MB</p>
             </div>
           </div>
           <input id="audio-file" type="file" accept=".mp3,.wav,.m4a,.webm,audio/*" class="hidden" />
@@ -81,9 +81,9 @@
           <!-- Big mic / stop button -->
           <button type="button" id="record-btn"
             class="w-24 h-24 rounded-full flex items-center justify-center transition-all
-                   bg-blue-50 border-2 border-blue-200 hover:bg-blue-100 hover:border-blue-400">
+                   bg-indigo-500/10 border-2 border-indigo-500/30 hover:bg-indigo-500/20 hover:border-indigo-400">
             <!-- Mic icon (idle) -->
-            <svg id="icon-mic" class="w-10 h-10 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg id="icon-mic" class="w-10 h-10 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                 d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/>
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
@@ -134,13 +134,13 @@
       </div>
 
       <!-- ── Shared: file indicator ──────────────────────────────────────── -->
-      <div id="file-indicator" class="hidden mt-4 flex items-center gap-3 bg-slate-50 rounded-lg px-4 py-3">
-        <svg class="w-5 h-5 text-blue-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <div id="file-indicator" class="hidden mt-4 flex items-center gap-3 bg-white/[0.05] rounded-lg px-4 py-3">
+        <svg class="w-5 h-5 text-indigo-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
             d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
         </svg>
-        <span id="file-name" class="text-sm text-slate-700 font-medium truncate flex-1"></span>
-        <button type="button" id="clear-file" class="text-slate-400 hover:text-slate-600 transition-colors">
+        <span id="file-name" class="text-sm text-slate-300 font-medium truncate flex-1"></span>
+        <button type="button" id="clear-file" class="text-slate-500 hover:text-slate-300 transition-colors">
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
@@ -149,13 +149,13 @@
 
       <!-- ── Shared: error ────────────────────────────────────────────────── -->
       <div id="error-display"
-           class="hidden mt-4 px-4 py-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg">
+           class="hidden mt-4 px-4 py-3 bg-red-900/40 border border-red-700/40 text-red-300 text-sm rounded-lg">
       </div>
 
       <!-- ── Shared: submit ──────────────────────────────────────────────── -->
       <button id="submit-btn" type="submit" disabled
-              class="mt-6 w-full bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed
-                     text-white font-medium py-3 px-6 rounded-lg transition-colors text-sm">
+              class="mt-6 w-full bg-indigo-600 hover:bg-indigo-500 disabled:bg-white/[0.07] disabled:text-slate-600 disabled:cursor-not-allowed
+                     text-white font-semibold py-3 px-6 rounded-lg transition-colors text-sm">
         Process Consultation
       </button>
 
@@ -164,21 +164,20 @@
 
   <!-- Pipeline info -->
   <div class="mt-6 grid grid-cols-3 gap-4 text-center">
-    {% for step, icon, label in steps %}{% endfor %}
-    <div class="bg-white rounded-lg border border-slate-200 p-4">
+    <div class="glass rounded-lg p-4">
       <div class="text-2xl mb-1">🎙️</div>
-      <p class="text-xs font-medium text-slate-600">Transcription</p>
-      <p class="text-xs text-slate-400 mt-0.5">AssemblyAI + speaker labels</p>
+      <p class="text-xs font-medium text-slate-300">Transcription</p>
+      <p class="text-xs text-slate-600 mt-0.5">AssemblyAI + speaker labels</p>
     </div>
-    <div class="bg-white rounded-lg border border-slate-200 p-4">
+    <div class="glass rounded-lg p-4">
       <div class="text-2xl mb-1">🔒</div>
-      <p class="text-xs font-medium text-slate-600">PII Redaction</p>
-      <p class="text-xs text-slate-400 mt-0.5">Microsoft Presidio (local)</p>
+      <p class="text-xs font-medium text-slate-300">PII Redaction</p>
+      <p class="text-xs text-slate-600 mt-0.5">Microsoft Presidio (local)</p>
     </div>
-    <div class="bg-white rounded-lg border border-slate-200 p-4">
+    <div class="glass rounded-lg p-4">
       <div class="text-2xl mb-1">🧠</div>
-      <p class="text-xs font-medium text-slate-600">SOAP Note</p>
-      <p class="text-xs text-slate-400 mt-0.5">Groq · Llama 3.3 70B</p>
+      <p class="text-xs font-medium text-slate-300">SOAP Note</p>
+      <p class="text-xs text-slate-600 mt-0.5">Groq · Llama 3.3 70B</p>
     </div>
   </div>
 

@@ -6,33 +6,73 @@
   <title>{% block title %}VitalNote{% endblock %}</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    [x-cloak] { display: none !important; }
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #0b0f1a;   /* explicit — don't rely on Tailwind JIT */
+      color: #e2e8f0;
+    }
+    .orb {
+      position: fixed; border-radius: 50%; filter: blur(110px);
+      opacity: 0.12; pointer-events: none; z-index: 0;
+      animation: drift 14s ease-in-out infinite alternate;
+    }
+    @keyframes drift {
+      from { transform: translate(0,0) scale(1); }
+      to   { transform: translate(25px,-25px) scale(1.07); }
+    }
+    /* Dark glass cards */
+    .glass {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    /* Form inputs */
+    .dark-input {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: #e2e8f0;
+    }
+    .dark-input::placeholder { color: #475569; }
+    .dark-input:focus {
+      outline: none;
+      border-color: #6366f1;
+      box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
+    }
   </style>
 </head>
-<body class="bg-slate-50 min-h-screen flex flex-col">
+<body class="bg-[#0b0f1a] text-slate-200 min-h-screen flex flex-col antialiased overflow-x-hidden">
 
-  <!-- Navbar -->
-  <nav class="bg-white border-b border-slate-200 shadow-sm">
+  <!-- Background orbs -->
+  <div class="orb w-[500px] h-[500px] bg-indigo-600 top-[-150px] left-[-120px]"></div>
+  <div class="orb w-[350px] h-[350px] bg-violet-700 bottom-[5%] right-[-80px]"
+       style="animation-delay:-6s;animation-duration:16s;"></div>
+
+  <!-- ── Navbar ─────────────────────────────────────────────────────────── -->
+  <nav class="relative z-10 border-b border-white/[0.06] bg-[#0b0f1a]/80 backdrop-blur-md">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between h-16">
 
         <!-- Logo -->
-        <a href="/dashboard/" class="flex items-center gap-2 group">
-          <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center">
+        <a href="{% if user.is_authenticated %}/dashboard/{% else %}/{% endif %}"
+           class="flex items-center gap-2.5 group">
+          <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center
+                      group-hover:bg-indigo-500 transition-colors">
             <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586
+                   a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
           </div>
-          <span class="text-lg font-bold text-slate-800">VitalNote</span>
-          <span class="hidden sm:inline text-xs text-slate-400 font-medium mt-0.5">AI Scribe</span>
+          <span class="text-lg font-bold text-white tracking-tight">VitalNote</span>
+          <span class="hidden sm:inline text-xs text-slate-500 font-medium mt-0.5">AI Scribe</span>
         </a>
 
         <!-- Right nav -->
         {% if user.is_authenticated %}
-        <div class="flex items-center gap-4">
+        <div class="flex items-center gap-3">
           <a href="/upload/"
-             class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
+             class="bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold
+                    px-4 py-2 rounded-lg transition-colors">
             + New Note
           </a>
           <div class="hidden sm:flex items-center gap-2 text-sm text-slate-500">
@@ -45,10 +85,27 @@
           <form method="post" action="/logout/">
             {% csrf_token %}
             <button type="submit"
-              class="text-sm text-slate-500 hover:text-slate-700 transition-colors">
+              class="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-white
+                     border border-white/[0.08] hover:border-white/20 bg-white/[0.04] hover:bg-white/[0.08]
+                     px-3 py-1.5 rounded-lg transition-all">
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
               Logout
             </button>
           </form>
+        </div>
+        {% else %}
+        <div class="flex items-center gap-3">
+          <a href="/login/" class="text-sm text-slate-400 hover:text-white font-medium transition-colors px-3 py-1.5">
+            Log in
+          </a>
+          <a href="/register/"
+             class="text-sm font-semibold bg-indigo-600 hover:bg-indigo-500 text-white
+                    px-4 py-2 rounded-lg transition-colors">
+            Get started free
+          </a>
         </div>
         {% endif %}
 
@@ -58,11 +115,11 @@
 
   <!-- Flash messages -->
   {% if messages %}
-  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 w-full">
+  <div class="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 w-full">
     {% for message in messages %}
     <div class="mb-2 px-4 py-3 rounded-lg text-sm
-      {% if message.tags == 'error' %}bg-red-50 text-red-700 border border-red-200
-      {% else %}bg-green-50 text-green-700 border border-green-200{% endif %}">
+      {% if message.tags == 'error' %}bg-red-900/40 text-red-300 border border-red-700/40
+      {% else %}bg-emerald-900/40 text-emerald-300 border border-emerald-700/40{% endif %}">
       {{ message }}
     </div>
     {% endfor %}
@@ -70,18 +127,19 @@
   {% endif %}
 
   <!-- Page content -->
-  <main class="flex-1 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+  <main class="relative z-10 flex-1 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
     {% block content %}{% endblock %}
   </main>
 
   <!-- Footer -->
-  <footer class="border-t border-slate-200 bg-white mt-auto">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-      <p class="text-xs text-slate-400">
-        VitalNote — AI Medical Scribe Prototype &nbsp;|&nbsp; Not for clinical use
+  <footer class="relative z-10 border-t border-white/[0.06] mt-auto">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4
+                flex flex-col sm:flex-row items-center justify-between gap-2">
+      <p class="text-xs text-slate-600">
+        VitalNote — AI Medical Scribe Prototype &nbsp;·&nbsp; Not for clinical use
       </p>
       <a href="/api/docs/" target="_blank"
-         class="text-xs text-blue-500 hover:text-blue-700 transition-colors">
+         class="text-xs text-indigo-500 hover:text-indigo-400 transition-colors">
         API Docs (Swagger)
       </a>
     </div>

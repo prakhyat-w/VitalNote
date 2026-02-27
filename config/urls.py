@@ -1,13 +1,23 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
+from django.shortcuts import redirect, render
 from django.urls import include, path
-from django.views.generic import RedirectView
+from django.views import View
 from drf_spectacular.utils import OpenApiResponse, extend_schema
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
+
+
+class HomeView(View):
+    """Public landing page. Authenticated users go straight to the dashboard."""
+
+    def get(self, request):
+        if request.user.is_authenticated:
+            return redirect("dashboard")
+        return render(request, "home.html")
 
 
 class HealthCheckView(APIView):
@@ -35,8 +45,8 @@ urlpatterns = [
     # ── Health check (cron-job.org keep-alive) ───────────────────────────────
     path("health/", HealthCheckView.as_view(), name="health"),
 
-    # ── Root redirect → dashboard ────────────────────────────────────────────
-    path("", RedirectView.as_view(url="/dashboard/", permanent=False), name="home"),
+    # ── Root → landing page (authenticated → dashboard) ─────────────────────
+    path("", HomeView.as_view(), name="home"),
 
     # ── Auth (register / login / logout) ─────────────────────────────────────
     path("", include("apps.users.urls")),
