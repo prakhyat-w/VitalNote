@@ -39,6 +39,6 @@ COPY docker/supervisord.conf /etc/supervisor/conf.d/vitalnote.conf
 COPY docker/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-EXPOSE 8000
+EXPOSE 10000
 
 ENTRYPOINT ["/entrypoint.sh"]
