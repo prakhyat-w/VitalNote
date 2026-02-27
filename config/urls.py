@@ -3,6 +3,7 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 from django.views.generic import RedirectView
+from drf_spectacular.utils import OpenApiResponse, extend_schema
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -18,6 +19,11 @@ class HealthCheckView(APIView):
     permission_classes = [AllowAny]
     authentication_classes = []
 
+    @extend_schema(
+        responses={200: OpenApiResponse(description='Returns {"status": "ok"} when healthy.')},
+        summary="Health check",
+        tags=["health"],
+    )
     def get(self, request):
         return Response({"status": "ok"})
 

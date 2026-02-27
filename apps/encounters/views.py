@@ -5,6 +5,7 @@ from django.core.paginator import Paginator
 from django.core.serializers.json import DjangoJSONEncoder
 from django.shortcuts import get_object_or_404, render
 from django.views import View
+from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework import status
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
@@ -66,6 +67,11 @@ class EncounterCreateAPIView(APIView):
     parser_classes = [MultiPartParser, FormParser]
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        request=EncounterCreateSerializer,
+        responses={201: OpenApiResponse(description="Encounter created, processing queued.")},
+        summary="Upload audio and start AI processing pipeline",
+    )
     def post(self, request):
         serializer = EncounterCreateSerializer(data=request.data)
         if not serializer.is_valid():
@@ -86,6 +92,10 @@ class EncounterStatusAPIView(APIView):
 
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        responses={200: EncounterSerializer},
+        summary="Poll encounter status and retrieve SOAP note when complete",
+    )
     def get(self, request, pk):
         encounter = get_object_or_404(
             Encounter.objects.select_related("transcript", "soap_note"),
@@ -100,6 +110,10 @@ class EncounterPDFAPIView(APIView):
 
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        responses={200: OpenApiResponse(description="PDF file (application/pdf).")},
+        summary="Download the SOAP note as a formatted PDF",
+    )
     def get(self, request, pk):
         encounter = get_object_or_404(
             Encounter.objects.select_related("transcript", "soap_note"),
