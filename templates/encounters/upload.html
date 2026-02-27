@@ -6,7 +6,7 @@
 
   <div class="mb-8">
     <h1 class="text-2xl font-bold text-slate-800">New Consultation</h1>
-    <p class="text-sm text-slate-500 mt-1">Upload an audio recording to generate a SOAP note.</p>
+    <p class="text-sm text-slate-500 mt-1">Upload a recording or use your microphone to generate a SOAP note.</p>
   </div>
 
   <!-- Info banner -->
@@ -27,26 +27,113 @@
     <form id="upload-form">
       {% csrf_token %}
 
-      <!-- Drop zone -->
-      <div id="drop-zone"
-           class="border-2 border-dashed border-slate-300 rounded-xl p-12 text-center cursor-pointer
-                  hover:border-blue-400 hover:bg-blue-50 transition-all duration-200 group">
-        <div class="flex flex-col items-center gap-3">
-          <div class="w-14 h-14 bg-slate-100 group-hover:bg-blue-100 rounded-full flex items-center justify-center transition-colors">
-            <svg class="w-7 h-7 text-slate-400 group-hover:text-blue-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-            </svg>
-          </div>
-          <div>
-            <p class="text-slate-600 font-medium">Click to browse or drag & drop</p>
-            <p class="text-slate-400 text-sm mt-1">MP3, WAV, M4A — max 25 MB</p>
-          </div>
-        </div>
-        <input id="audio-file" type="file" accept=".mp3,.wav,.m4a,audio/*" class="hidden" />
+      <!-- Tab switcher -->
+      <div class="flex gap-1 border-b border-slate-200 mb-6">
+        <button type="button" id="tab-btn-upload"
+          class="flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2
+                 border-blue-500 text-blue-600 -mb-px">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+          </svg>
+          Upload File
+        </button>
+        <button type="button" id="tab-btn-record"
+          class="flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2
+                 border-transparent text-slate-500 hover:text-slate-700 -mb-px transition-colors">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M19 10v2a7 7 0 01-14 0v-2"/>
+            <line x1="12" y1="19" x2="12" y2="23" stroke-linecap="round" stroke-width="2"/>
+            <line x1="8" y1="23" x2="16" y2="23" stroke-linecap="round" stroke-width="2"/>
+          </svg>
+          Record Audio
+        </button>
       </div>
 
-      <!-- Selected file indicator -->
+      <!-- ── Upload tab ──────────────────────────────────────────────────── -->
+      <div id="tab-upload">
+        <div id="drop-zone"
+             class="border-2 border-dashed border-slate-300 rounded-xl p-12 text-center cursor-pointer
+                    hover:border-blue-400 hover:bg-blue-50 transition-all duration-200 group">
+          <div class="flex flex-col items-center gap-3">
+            <div class="w-14 h-14 bg-slate-100 group-hover:bg-blue-100 rounded-full flex items-center justify-center transition-colors">
+              <svg class="w-7 h-7 text-slate-400 group-hover:text-blue-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                  d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+              </svg>
+            </div>
+            <div>
+              <p class="text-slate-600 font-medium">Click to browse or drag &amp; drop</p>
+              <p class="text-slate-400 text-sm mt-1">MP3, WAV, M4A, WebM — max 25 MB</p>
+            </div>
+          </div>
+          <input id="audio-file" type="file" accept=".mp3,.wav,.m4a,.webm,audio/*" class="hidden" />
+        </div>
+      </div>
+
+      <!-- ── Record tab ──────────────────────────────────────────────────── -->
+      <div id="tab-record" class="hidden">
+        <div class="flex flex-col items-center gap-5 py-8">
+
+          <!-- Big mic / stop button -->
+          <button type="button" id="record-btn"
+            class="w-24 h-24 rounded-full flex items-center justify-center transition-all
+                   bg-blue-50 border-2 border-blue-200 hover:bg-blue-100 hover:border-blue-400">
+            <!-- Mic icon (idle) -->
+            <svg id="icon-mic" class="w-10 h-10 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                d="M19 10v2a7 7 0 01-14 0v-2"/>
+              <line x1="12" y1="19" x2="12" y2="23" stroke-linecap="round" stroke-width="1.5"/>
+              <line x1="8" y1="23" x2="16" y2="23" stroke-linecap="round" stroke-width="1.5"/>
+            </svg>
+            <!-- Stop icon (while recording) -->
+            <svg id="icon-stop" class="w-10 h-10 text-red-500 hidden" fill="currentColor" viewBox="0 0 24 24">
+              <rect x="5" y="5" width="14" height="14" rx="2"/>
+            </svg>
+          </button>
+
+          <!-- Status text -->
+          <p id="record-status" class="text-sm font-medium text-slate-500">Tap to start recording</p>
+
+          <!-- Timer (shown while recording) -->
+          <div id="record-timer" style="display:none" class="items-center gap-2">
+            <span class="inline-block w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></span>
+            <span id="timer-display" class="font-mono text-slate-700 text-sm tabular-nums">00:00</span>
+          </div>
+
+          <!-- Audio preview (shown after recording) -->
+          <audio id="record-preview" controls class="hidden w-full max-w-sm"></audio>
+
+          <!-- Action buttons (shown after recording) -->
+          <div id="record-actions" style="display:none" class="items-center gap-3">
+            <button type="button" id="record-again"
+              class="flex items-center gap-1.5 px-4 py-2 rounded-lg border border-slate-300
+                     text-sm text-slate-600 hover:bg-slate-50 transition-colors">
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+              </svg>
+              Re-record
+            </button>
+            <button type="button" id="record-use"
+              class="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700
+                     text-white text-sm font-medium transition-colors">
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+              </svg>
+              Use recording
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ── Shared: file indicator ──────────────────────────────────────── -->
       <div id="file-indicator" class="hidden mt-4 flex items-center gap-3 bg-slate-50 rounded-lg px-4 py-3">
         <svg class="w-5 h-5 text-blue-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -60,12 +147,12 @@
         </button>
       </div>
 
-      <!-- Error -->
+      <!-- ── Shared: error ────────────────────────────────────────────────── -->
       <div id="error-display"
            class="hidden mt-4 px-4 py-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg">
       </div>
 
-      <!-- Submit -->
+      <!-- ── Shared: submit ──────────────────────────────────────────────── -->
       <button id="submit-btn" type="submit" disabled
               class="mt-6 w-full bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed
                      text-white font-medium py-3 px-6 rounded-lg transition-colors text-sm">
@@ -98,6 +185,6 @@
 </div>
 {% endblock %}
 
-{% block extra_head %}
-<script src="/static/js/upload.js" defer></script>
+{% block extra_js %}
+<script src="/static/js/upload.js"></script>
 {% endblock %}

@@ -1,8 +1,5 @@
-import json
-
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.paginator import Paginator
-from django.core.serializers.json import DjangoJSONEncoder
 from django.shortcuts import get_object_or_404, render
 from django.views import View
 from drf_spectacular.utils import OpenApiResponse, extend_schema
@@ -50,11 +47,12 @@ class EncounterDetailView(LoginRequiredMixin, View):
             user=request.user,
         )
         serializer = EncounterSerializer(encounter)
-        encounter_json = json.dumps(dict(serializer.data), cls=DjangoJSONEncoder)
         return render(
             request,
             "encounters/result.html",
-            {"encounter": encounter, "encounter_json": encounter_json},
+            # Pass the dict directly so {{ encounter_json|json_script }} encodes it exactly once.
+            # (Pre-encoding to a string then using json_script would double-encode it.)
+            {"encounter": encounter, "encounter_json": serializer.data},
         )
 
 

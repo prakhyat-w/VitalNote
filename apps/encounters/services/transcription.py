@@ -53,6 +53,7 @@ def transcribe_audio(encounter) -> dict:
     config = aai.TranscriptionConfig(
         speaker_labels=True,
         speakers_expected=2,
+        speech_models=["universal-2"],
     )
 
     transcriber = aai.Transcriber()

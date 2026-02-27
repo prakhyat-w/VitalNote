@@ -168,100 +168,122 @@
 </div>
 {% endblock %}
 
-{% block extra_head %}
+{% block extra_js %}
 <script>
 (function () {
   const encounterData = JSON.parse(document.getElementById("encounter-data").textContent);
   const encounterId = encounterData.id;
-
+  const TERMINAL = ["COMPLETED", "FAILED"];
   const STATUS_ORDER = ["PENDING", "TRANSCRIBED", "REDACTED", "COMPLETED"];
   const STATUS_LABELS = {
-    PENDING: "Uploading…",
-    TRANSCRIBED: "Transcribed — Redacting PII…",
-    REDACTED: "Redacted — Generating SOAP…",
-    COMPLETED: "Completed",
-    FAILED: "Failed",
+    PENDING:      "Uploading…",
+    TRANSCRIBED:  "Transcribed — Redacting PII…",
+    REDACTED:     "Redacted — Generating SOAP…",
+    COMPLETED:    "Completed",
+    FAILED:       "Failed",
   };
 
-  function renderSOAP(soap) {
-    document.getElementById("soap-subjective").textContent = soap.subjective || "";
-    document.getElementById("soap-objective").textContent = soap.objective || "";
-    document.getElementById("soap-assessment").textContent = soap.assessment || "";
-    document.getElementById("soap-plan").textContent = soap.plan || "";
+  // ── Helpers ────────────────────────────────────────────────────────────────
+  function $(id) { return document.getElementById(id); }
+
+  function setClasses(el, remove, add) {
+    remove.forEach(function (c) { el.classList.remove(c); });
+    add.forEach(function (c) { el.classList.add(c); });
   }
 
+  // ── Render SOAP cards ──────────────────────────────────────────────────────
+  function renderSOAP(soap) {
+    $("soap-subjective").textContent  = soap.subjective  || "";
+    $("soap-objective").textContent   = soap.objective   || "";
+    $("soap-assessment").textContent  = soap.assessment  || "";
+    $("soap-plan").textContent        = soap.plan        || "";
+  }
+
+  // ── Full UI update ─────────────────────────────────────────────────────────
   function updateUI(data) {
-    const statusText = document.getElementById("status-text");
-    const statusDot = document.getElementById("status-dot");
-    const statusBadge = document.getElementById("status-badge");
+    var status = data.status;
 
-    // Update status text
-    statusText.textContent = STATUS_LABELS[data.status] || data.status;
-
-    // Update badge colour
-    const badgeMap = {
-      COMPLETED: "bg-emerald-100 text-emerald-700",
-      FAILED: "bg-red-100 text-red-700",
-    };
-    const dotMap = {
-      COMPLETED: "bg-emerald-500",
-      FAILED: "bg-red-500",
-    };
-    if (badgeMap[data.status]) {
-      statusBadge.className = `self-start sm:self-auto inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium ${badgeMap[data.status]}`;
-      statusDot.className = `w-2 h-2 rounded-full ${dotMap[data.status]}`;
+    // Status badge
+    $("status-text").textContent = STATUS_LABELS[status] || status;
+    if (status === "COMPLETED") {
+      setClasses($("status-badge"), ["bg-amber-100","text-amber-700"], ["bg-emerald-100","text-emerald-700"]);
+      setClasses($("status-dot"),  ["bg-amber-500","animate-pulse"],   ["bg-emerald-500"]);
+    } else if (status === "FAILED") {
+      setClasses($("status-badge"), ["bg-amber-100","text-amber-700"], ["bg-red-100","text-red-700"]);
+      setClasses($("status-dot"),  ["bg-amber-500","animate-pulse"],   ["bg-red-500"]);
     }
 
-    // Update progress step circles
-    const stepIdx = STATUS_ORDER.indexOf(data.status);
+    // Progress step circles
+    var stepIdx = STATUS_ORDER.indexOf(status);
     STATUS_ORDER.forEach(function (s, i) {
-      const el = document.getElementById("step-" + s.toLowerCase());
+      var el = $("step-" + s.toLowerCase());
       if (!el) return;
-      const circle = el.querySelector("div");
-      if (i < stepIdx || data.status === "COMPLETED") {
-        circle.className = circle.className.replace(/bg-white|border-slate-300|text-slate-400/g, "")
-          + " bg-blue-500 border-blue-500 text-white";
+      var circle = el.querySelector("div");
+      if (!circle) return;
+      var done = (i < stepIdx) || (status === "COMPLETED");
+      if (done) {
+        setClasses(circle,
+          ["bg-white","border-slate-300","text-slate-400"],
+          ["bg-blue-500","border-blue-500","text-white"]
+        );
         circle.textContent = "✓";
       }
     });
 
-    // Show/hide sections
-    if (data.status === "COMPLETED" && data.soap_note) {
+    // Section visibility
+    if (status === "COMPLETED" && data.soap_note) {
       renderSOAP(data.soap_note);
-      document.getElementById("soap-section").classList.remove("hidden");
-      document.getElementById("processing-section").classList.add("hidden");
-      document.getElementById("error-section").classList.add("hidden");
-    } else if (data.status === "FAILED") {
-      document.getElementById("error-message").textContent =
-        data.error_message || "An unexpected error occurred.";
-      document.getElementById("error-section").classList.remove("hidden");
-      document.getElementById("processing-section").classList.add("hidden");
+      $("soap-section").classList.remove("hidden");
+      $("processing-section").classList.add("hidden");
+      $("error-section").classList.add("hidden");
+    } else if (status === "FAILED") {
+      $("error-message").textContent = data.error_message || "An unexpected error occurred.";
+      $("error-section").classList.remove("hidden");
+      $("processing-section").classList.add("hidden");
+      $("soap-section").classList.add("hidden");
     } else {
-      document.getElementById("processing-label").textContent =
-        STATUS_LABELS[data.status] || "Processing…";
+      $("processing-label").textContent = STATUS_LABELS[status] || "Processing…";
+      $("processing-section").classList.remove("hidden");
     }
+  }
+
+  // ── Polling ────────────────────────────────────────────────────────────────
+  var pollTimer = null;
+
+  function schedulePoll(delay) {
+    pollTimer = setTimeout(poll, delay || 3000);
   }
 
   async function poll() {
     try {
-      const res = await fetch("/api/encounters/" + encounterId + "/");
-      if (!res.ok) return;
-      const data = await res.json();
+      var res = await fetch("/api/encounters/" + encounterId + "/", {
+        credentials: "same-origin",
+        headers: { "Accept": "application/json" }
+      });
+
+      if (!res.ok) {
+        // Non-200 (e.g. transient 500): keep retrying, do NOT stop
+        schedulePoll(4000);
+        return;
+      }
+
+      var data = await res.json();
       updateUI(data);
-      if (data.status !== "COMPLETED" && data.status !== "FAILED") {
-        setTimeout(poll, 3000);
+
+      if (!TERMINAL.includes(data.status)) {
+        schedulePoll(3000);
       }
     } catch (e) {
-      setTimeout(poll, 5000);
+      // Network error: retry after 5 s
+      schedulePoll(5000);
     }
   }
 
-  // Initialise from server-rendered data
+  // ── Boot ───────────────────────────────────────────────────────────────────
   updateUI(encounterData);
 
-  // Start polling if not terminal
-  if (encounterData.status !== "COMPLETED" && encounterData.status !== "FAILED") {
-    setTimeout(poll, 3000);
+  if (!TERMINAL.includes(encounterData.status)) {
+    schedulePoll(3000);
   }
 })();
 </script>

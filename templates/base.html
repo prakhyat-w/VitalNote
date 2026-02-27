@@ -8,7 +8,6 @@
   <style>
     [x-cloak] { display: none !important; }
   </style>
-  {% block extra_head %}{% endblock %}
 </head>
 <body class="bg-slate-50 min-h-screen flex flex-col">
 
@@ -87,6 +86,8 @@
       </a>
     </div>
   </footer>
+
+  {% block extra_js %}{% endblock %}
 
 </body>
 </html>
