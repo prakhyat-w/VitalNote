@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>SOAP Note — VitalNote</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Liberation Serif", Georgia, serif;
+      font-size: 11pt;
+      color: #1a1a2e;
+      background: #ffffff;
+      padding: 0;
+    }
+
+    /* Page margins handled by WeasyPrint @page */
+    @page {
+      size: A4;
+      margin: 2cm 2.5cm;
+    }
+
+    /* ── Header ──────────────────────────────────────────────────────────── */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding-bottom: 12pt;
+      border-bottom: 2pt solid #2563eb;
+      margin-bottom: 18pt;
+    }
+    .brand { color: #2563eb; font-size: 20pt; font-weight: bold; font-family: sans-serif; }
+    .brand-sub { font-size: 9pt; color: #6b7280; font-family: sans-serif; }
+    .meta { text-align: right; font-size: 9pt; color: #6b7280; font-family: sans-serif; line-height: 1.6; }
+
+    /* ── Encounter info ───────────────────────────────────────────────────── */
+    .encounter-info {
+      background: #f8fafc;
+      border: 1pt solid #e2e8f0;
+      border-radius: 4pt;
+      padding: 10pt 14pt;
+      margin-bottom: 18pt;
+      font-family: sans-serif;
+      font-size: 9pt;
+      color: #475569;
+      display: flex;
+      gap: 24pt;
+    }
+    .encounter-info strong { color: #1e293b; }
+
+    /* ── SOAP sections ────────────────────────────────────────────────────── */
+    .section { margin-bottom: 18pt; page-break-inside: avoid; }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 8pt;
+      margin-bottom: 8pt;
+      padding-bottom: 5pt;
+      border-bottom: 1pt solid #e2e8f0;
+    }
+
+    .section-badge {
+      width: 20pt;
+      height: 20pt;
+      border-radius: 4pt;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10pt;
+      font-weight: bold;
+      font-family: sans-serif;
+      color: #ffffff;
+      flex-shrink: 0;
+    }
+    .badge-s { background: #2563eb; }
+    .badge-o { background: #7c3aed; }
+    .badge-a { background: #d97706; }
+    .badge-p { background: #059669; }
+
+    .section-title {
+      font-size: 12pt;
+      font-weight: bold;
+      font-family: sans-serif;
+      color: #1e293b;
+    }
+
+    .section-body {
+      line-height: 1.7;
+      color: #334155;
+      white-space: pre-wrap;
+    }
+
+    /* ── Footer ──────────────────────────────────────────────────────────── */
+    .footer {
+      position: fixed;
+      bottom: 1cm;
+      left: 2.5cm;
+      right: 2.5cm;
+      border-top: 1pt solid #e2e8f0;
+      padding-top: 6pt;
+      font-family: sans-serif;
+      font-size: 8pt;
+      color: #94a3b8;
+      display: flex;
+      justify-content: space-between;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="header">
+    <div>
+      <div class="brand">VitalNote</div>
+      <div class="brand-sub">AI Medical Scribe — SOAP Note</div>
+    </div>
+    <div class="meta">
+      <div>Generated: {{ encounter.updated_at|date:"M j, Y · g:i A" }} UTC</div>
+      <div>Encounter ID: {{ encounter.id }}</div>
+    </div>
+  </div>
+
+  <!-- Encounter metadata -->
+  <div class="encounter-info">
+    <div><strong>File:</strong> {{ encounter.original_filename }}</div>
+    <div><strong>Provider:</strong> {{ encounter.user.full_name }}</div>
+    <div><strong>Status:</strong> Completed</div>
+  </div>
+
+  <!-- S — Subjective -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-badge badge-s">S</div>
+      <div class="section-title">Subjective</div>
+    </div>
+    <div class="section-body">{{ soap_note.subjective }}</div>
+  </div>
+
+  <!-- O — Objective -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-badge badge-o">O</div>
+      <div class="section-title">Objective</div>
+    </div>
+    <div class="section-body">{{ soap_note.objective }}</div>
+  </div>
+
+  <!-- A — Assessment -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-badge badge-a">A</div>
+      <div class="section-title">Assessment</div>
+    </div>
+    <div class="section-body">{{ soap_note.assessment }}</div>
+  </div>
+
+  <!-- P — Plan -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-badge badge-p">P</div>
+      <div class="section-title">Plan</div>
+    </div>
+    <div class="section-body">{{ soap_note.plan }}</div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <span>⚠ This note was AI-generated from a redacted transcript. It is a prototype for portfolio purposes only — NOT for clinical use.</span>
+    <span>VitalNote</span>
+  </div>
+
+</body>
+</html>

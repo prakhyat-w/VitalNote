@@ -1,0 +1,268 @@
+{% extends "base.html" %}
+{% block title %}Encounter Result — VitalNote{% endblock %}
+
+{% block content %}
+<!-- Pass encounter data to JS safely -->
+{{ encounter_json|json_script:"encounter-data" }}
+
+<div class="max-w-4xl mx-auto">
+
+  <!-- Breadcrumb -->
+  <div class="mb-6">
+    <a href="/dashboard/" class="text-sm text-blue-600 hover:text-blue-800 transition-colors">
+      ← Back to Dashboard
+    </a>
+  </div>
+
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-800">Consultation Result</h1>
+      <p class="text-xs text-slate-400 mt-1 font-mono">ID: {{ encounter.id }}</p>
+    </div>
+    <span id="status-badge" class="self-start sm:self-auto inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium
+      {% if encounter.status == 'COMPLETED' %}bg-emerald-100 text-emerald-700
+      {% elif encounter.status == 'FAILED' %}bg-red-100 text-red-700
+      {% else %}bg-amber-100 text-amber-700{% endif %}">
+      <span id="status-dot" class="w-2 h-2 rounded-full
+        {% if encounter.status == 'COMPLETED' %}bg-emerald-500
+        {% elif encounter.status == 'FAILED' %}bg-red-500
+        {% else %}bg-amber-500 animate-pulse{% endif %}">
+      </span>
+      <span id="status-text">{{ encounter.status }}</span>
+    </span>
+  </div>
+
+  <!-- Progress steps -->
+  <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 mb-8">
+    <div class="flex items-center justify-between relative">
+      <!-- Connecting line -->
+      <div class="absolute left-0 right-0 top-4 h-0.5 bg-slate-200 z-0 mx-10"></div>
+      <div id="progress-line" class="absolute left-0 top-4 h-0.5 bg-blue-500 z-0 mx-10 transition-all duration-700"
+           style="right: calc(100% - {{ encounter.status|yesno:'0%,25%,50%,75%,100%' }})"></div>
+
+      {% for step_id, label, icon in steps_data %}{% endfor %}
+
+      <!-- Step: Uploaded -->
+      <div id="step-pending" class="flex flex-col items-center gap-2 z-10">
+        <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold border-2
+          {% if encounter.status != 'PENDING' or encounter.status == 'COMPLETED' %}bg-blue-500 border-blue-500 text-white{% else %}bg-white border-slate-300 text-slate-400{% endif %}">
+          {% if encounter.status == 'PENDING' %}1{% else %}✓{% endif %}
+        </div>
+        <span class="text-xs text-slate-500 font-medium">Uploaded</span>
+      </div>
+
+      <!-- Step: Transcribed -->
+      <div id="step-transcribed" class="flex flex-col items-center gap-2 z-10">
+        <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold border-2
+          {% if encounter.status == 'TRANSCRIBED' or encounter.status == 'REDACTED' or encounter.status == 'COMPLETED' %}bg-blue-500 border-blue-500 text-white{% else %}bg-white border-slate-300 text-slate-400{% endif %}">
+          {% if encounter.status == 'TRANSCRIBED' or encounter.status == 'REDACTED' or encounter.status == 'COMPLETED' %}✓{% else %}2{% endif %}
+        </div>
+        <span class="text-xs text-slate-500 font-medium">Transcribed</span>
+      </div>
+
+      <!-- Step: Redacted -->
+      <div id="step-redacted" class="flex flex-col items-center gap-2 z-10">
+        <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold border-2
+          {% if encounter.status == 'REDACTED' or encounter.status == 'COMPLETED' %}bg-blue-500 border-blue-500 text-white{% else %}bg-white border-slate-300 text-slate-400{% endif %}">
+          {% if encounter.status == 'REDACTED' or encounter.status == 'COMPLETED' %}✓{% else %}3{% endif %}
+        </div>
+        <span class="text-xs text-slate-500 font-medium">PII Redacted</span>
+      </div>
+
+      <!-- Step: Completed -->
+      <div id="step-completed" class="flex flex-col items-center gap-2 z-10">
+        <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold border-2
+          {% if encounter.status == 'COMPLETED' %}bg-emerald-500 border-emerald-500 text-white{% else %}bg-white border-slate-300 text-slate-400{% endif %}">
+          {% if encounter.status == 'COMPLETED' %}✓{% else %}4{% endif %}
+        </div>
+        <span class="text-xs text-slate-500 font-medium">SOAP Ready</span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Error section -->
+  <div id="error-section" class="{% if encounter.status != 'FAILED' %}hidden{% endif %} mb-8">
+    <div class="bg-red-50 border border-red-200 rounded-xl p-6">
+      <div class="flex items-start gap-3">
+        <svg class="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <div>
+          <h3 class="font-semibold text-red-800 mb-1">Processing Failed</h3>
+          <p id="error-message" class="text-sm text-red-700">{{ encounter.error_message }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SOAP Note section -->
+  <div id="soap-section" class="{% if encounter.status != 'COMPLETED' %}hidden{% endif %}">
+
+    <!-- Download PDF button -->
+    <div class="flex justify-end mb-4">
+      <a href="/api/encounters/{{ encounter.id }}/pdf/"
+         class="inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-white text-sm font-medium
+                px-5 py-2.5 rounded-lg transition-colors">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        Download PDF
+      </a>
+    </div>
+
+    <!-- SOAP cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="w-7 h-7 rounded-md bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold">S</span>
+          <h2 class="font-semibold text-slate-700">Subjective</h2>
+        </div>
+        <p id="soap-subjective" class="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap"></p>
+      </div>
+
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="w-7 h-7 rounded-md bg-violet-100 text-violet-600 flex items-center justify-center text-xs font-bold">O</span>
+          <h2 class="font-semibold text-slate-700">Objective</h2>
+        </div>
+        <p id="soap-objective" class="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap"></p>
+      </div>
+
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="w-7 h-7 rounded-md bg-amber-100 text-amber-600 flex items-center justify-center text-xs font-bold">A</span>
+          <h2 class="font-semibold text-slate-700">Assessment</h2>
+        </div>
+        <p id="soap-assessment" class="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap"></p>
+      </div>
+
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="w-7 h-7 rounded-md bg-emerald-100 text-emerald-600 flex items-center justify-center text-xs font-bold">P</span>
+          <h2 class="font-semibold text-slate-700">Plan</h2>
+        </div>
+        <p id="soap-plan" class="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap"></p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Pending / processing placeholder -->
+  <div id="processing-section"
+       class="{% if encounter.status == 'COMPLETED' or encounter.status == 'FAILED' %}hidden{% endif %}
+              text-center py-16 bg-white rounded-xl border border-slate-200 border-dashed">
+    <div class="flex flex-col items-center gap-4">
+      <div class="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+      <div>
+        <p class="font-medium text-slate-700" id="processing-label">Processing your consultation…</p>
+        <p class="text-sm text-slate-400 mt-1">This page updates automatically. Please wait.</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_head %}
+<script>
+(function () {
+  const encounterData = JSON.parse(document.getElementById("encounter-data").textContent);
+  const encounterId = encounterData.id;
+
+  const STATUS_ORDER = ["PENDING", "TRANSCRIBED", "REDACTED", "COMPLETED"];
+  const STATUS_LABELS = {
+    PENDING: "Uploading…",
+    TRANSCRIBED: "Transcribed — Redacting PII…",
+    REDACTED: "Redacted — Generating SOAP…",
+    COMPLETED: "Completed",
+    FAILED: "Failed",
+  };
+
+  function renderSOAP(soap) {
+    document.getElementById("soap-subjective").textContent = soap.subjective || "";
+    document.getElementById("soap-objective").textContent = soap.objective || "";
+    document.getElementById("soap-assessment").textContent = soap.assessment || "";
+    document.getElementById("soap-plan").textContent = soap.plan || "";
+  }
+
+  function updateUI(data) {
+    const statusText = document.getElementById("status-text");
+    const statusDot = document.getElementById("status-dot");
+    const statusBadge = document.getElementById("status-badge");
+
+    // Update status text
+    statusText.textContent = STATUS_LABELS[data.status] || data.status;
+
+    // Update badge colour
+    const badgeMap = {
+      COMPLETED: "bg-emerald-100 text-emerald-700",
+      FAILED: "bg-red-100 text-red-700",
+    };
+    const dotMap = {
+      COMPLETED: "bg-emerald-500",
+      FAILED: "bg-red-500",
+    };
+    if (badgeMap[data.status]) {
+      statusBadge.className = `self-start sm:self-auto inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium ${badgeMap[data.status]}`;
+      statusDot.className = `w-2 h-2 rounded-full ${dotMap[data.status]}`;
+    }
+
+    // Update progress step circles
+    const stepIdx = STATUS_ORDER.indexOf(data.status);
+    STATUS_ORDER.forEach(function (s, i) {
+      const el = document.getElementById("step-" + s.toLowerCase());
+      if (!el) return;
+      const circle = el.querySelector("div");
+      if (i < stepIdx || data.status === "COMPLETED") {
+        circle.className = circle.className.replace(/bg-white|border-slate-300|text-slate-400/g, "")
+          + " bg-blue-500 border-blue-500 text-white";
+        circle.textContent = "✓";
+      }
+    });
+
+    // Show/hide sections
+    if (data.status === "COMPLETED" && data.soap_note) {
+      renderSOAP(data.soap_note);
+      document.getElementById("soap-section").classList.remove("hidden");
+      document.getElementById("processing-section").classList.add("hidden");
+      document.getElementById("error-section").classList.add("hidden");
+    } else if (data.status === "FAILED") {
+      document.getElementById("error-message").textContent =
+        data.error_message || "An unexpected error occurred.";
+      document.getElementById("error-section").classList.remove("hidden");
+      document.getElementById("processing-section").classList.add("hidden");
+    } else {
+      document.getElementById("processing-label").textContent =
+        STATUS_LABELS[data.status] || "Processing…";
+    }
+  }
+
+  async function poll() {
+    try {
+      const res = await fetch("/api/encounters/" + encounterId + "/");
+      if (!res.ok) return;
+      const data = await res.json();
+      updateUI(data);
+      if (data.status !== "COMPLETED" && data.status !== "FAILED") {
+        setTimeout(poll, 3000);
+      }
+    } catch (e) {
+      setTimeout(poll, 5000);
+    }
+  }
+
+  // Initialise from server-rendered data
+  updateUI(encounterData);
+
+  // Start polling if not terminal
+  if (encounterData.status !== "COMPLETED" && encounterData.status !== "FAILED") {
+    setTimeout(poll, 3000);
+  }
+})();
+</script>
+{% endblock %}

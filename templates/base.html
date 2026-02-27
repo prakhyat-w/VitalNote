@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}VitalNote{% endblock %}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    [x-cloak] { display: none !important; }
+  </style>
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-slate-50 min-h-screen flex flex-col">
+
+  <!-- Navbar -->
+  <nav class="bg-white border-b border-slate-200 shadow-sm">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+
+        <!-- Logo -->
+        <a href="/dashboard/" class="flex items-center gap-2 group">
+          <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center">
+            <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+          </div>
+          <span class="text-lg font-bold text-slate-800">VitalNote</span>
+          <span class="hidden sm:inline text-xs text-slate-400 font-medium mt-0.5">AI Scribe</span>
+        </a>
+
+        <!-- Right nav -->
+        {% if user.is_authenticated %}
+        <div class="flex items-center gap-4">
+          <a href="/upload/"
+             class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
+            + New Note
+          </a>
+          <div class="hidden sm:flex items-center gap-2 text-sm text-slate-500">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+            <span>{{ user.email }}</span>
+          </div>
+          <form method="post" action="/logout/">
+            {% csrf_token %}
+            <button type="submit"
+              class="text-sm text-slate-500 hover:text-slate-700 transition-colors">
+              Logout
+            </button>
+          </form>
+        </div>
+        {% endif %}
+
+      </div>
+    </div>
+  </nav>
+
+  <!-- Flash messages -->
+  {% if messages %}
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 w-full">
+    {% for message in messages %}
+    <div class="mb-2 px-4 py-3 rounded-lg text-sm
+      {% if message.tags == 'error' %}bg-red-50 text-red-700 border border-red-200
+      {% else %}bg-green-50 text-green-700 border border-green-200{% endif %}">
+      {{ message }}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- Page content -->
+  <main class="flex-1 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-slate-200 bg-white mt-auto">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row items-center justify-between gap-2">
+      <p class="text-xs text-slate-400">
+        VitalNote — AI Medical Scribe Prototype &nbsp;|&nbsp; Not for clinical use
+      </p>
+      <a href="/api/docs/" target="_blank"
+         class="text-xs text-blue-500 hover:text-blue-700 transition-colors">
+        API Docs (Swagger)
+      </a>
+    </div>
+  </footer>
+
+</body>
+</html>
