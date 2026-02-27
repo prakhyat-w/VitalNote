@@ -12,7 +12,12 @@ else
     python manage.py collectstatic --noinput
 
     echo "Starting Gunicorn..."
-    exec gunicorn config.wsgi:application \
+    # Change cwd to /dev/shm so gunicorn's control socket (.ctl) lands on
+    # tmpfs — VirtioFS (/app) does not support Unix domain sockets on
+    # Docker Desktop for Mac / ARM64 Linux.
+    # PYTHONPATH keeps the app importable from the new cwd.
+    export PYTHONPATH=/app
+    cd /dev/shm && exec gunicorn config.wsgi:application \
         --bind 0.0.0.0:${PORT:-8000} \
         --workers 2 \
         --timeout 120 \

@@ -148,6 +148,7 @@ CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = "UTC"
 CELERY_TASK_TRACK_STARTED = True
+CELERY_WORKER_CANCEL_LONG_RUNNING_TASKS_ON_CONNECTION_LOSS = True
 
 # Upstash uses TLS (rediss://): tell Celery to accept the managed certificate.
 if CELERY_BROKER_URL.startswith("rediss://"):
