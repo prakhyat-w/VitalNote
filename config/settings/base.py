@@ -4,6 +4,7 @@ Environment-specific settings live in development.py and production.py.
 """
 
 import os
+import ssl
 from pathlib import Path
 
 import environ
@@ -147,6 +148,12 @@ CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = "UTC"
 CELERY_TASK_TRACK_STARTED = True
+
+# Upstash uses TLS (rediss://): tell Celery to accept the managed certificate.
+if CELERY_BROKER_URL.startswith("rediss://"):
+    _ssl_opts = {"ssl_cert_reqs": ssl.CERT_NONE}
+    CELERY_BROKER_USE_SSL = _ssl_opts
+    CELERY_REDIS_BACKEND_USE_SSL = _ssl_opts
 
 # ── External API keys ─────────────────────────────────────────────────────────
 ASSEMBLYAI_API_KEY = env("ASSEMBLYAI_API_KEY", default="")
