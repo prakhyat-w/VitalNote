@@ -18,6 +18,7 @@
   <table class="w-full text-sm">
     <thead class="border-b border-white/[0.07] bg-white/[0.03]">
       <tr>
+        <th class="text-left px-6 py-3 font-medium text-slate-500">Patient</th>
         <th class="text-left px-6 py-3 font-medium text-slate-500">File</th>
         <th class="text-left px-6 py-3 font-medium text-slate-500">Date</th>
         <th class="text-left px-6 py-3 font-medium text-slate-500">Status</th>
@@ -27,6 +28,15 @@
     <tbody class="divide-y divide-white/[0.05]">
       {% for encounter in page_obj %}
       <tr class="hover:bg-white/[0.03] transition-colors">
+
+        <!-- Patient name -->
+        <td class="px-6 py-4 text-slate-200 font-medium">
+          {% if encounter.patient_name %}
+            {{ encounter.patient_name }}{% if encounter.patient_age %} <span class="text-slate-500 text-xs font-normal">{{ encounter.patient_age }} yrs</span>{% endif %}
+          {% else %}
+            <span class="text-slate-600">—</span>
+          {% endif %}
+        </td>
 
         <!-- File name -->
         <td class="px-6 py-4 text-slate-200 font-medium max-w-xs truncate">

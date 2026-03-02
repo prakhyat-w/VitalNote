@@ -9,6 +9,8 @@
   var clearFileBtn  = document.getElementById("clear-file");
   var submitBtn     = document.getElementById("submit-btn");
   var errorDisplay  = document.getElementById("error-display");
+  var patientName   = document.getElementById("patient-name");
+  var patientAge    = document.getElementById("patient-age");
 
   // Tabs
   var tabBtnUpload  = document.getElementById("tab-btn-upload");
@@ -283,6 +285,8 @@
     } else {
       formData.append("audio_file", fileInput.files[0]);
     }
+    if (patientName && patientName.value.trim()) formData.append("patient_name", patientName.value.trim());
+    if (patientAge  && patientAge.value.trim())  formData.append("patient_age",  patientAge.value.trim());
 
     try {
       var response = await fetch("/api/encounters/", {

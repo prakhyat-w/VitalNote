@@ -22,6 +22,31 @@
     </p>
   </div>
 
+  <!-- Patient information (optional) -->
+  <div class="glass rounded-xl p-6 mb-6">
+    <h2 class="text-sm font-semibold text-slate-300 mb-4">
+      Patient Information
+      <span class="text-slate-600 font-normal ml-1">(optional)</span>
+    </h2>
+    <div class="grid grid-cols-2 gap-4">
+      <div>
+        <label for="patient-name" class="block text-xs font-medium text-slate-500 mb-1.5">Patient Name</label>
+        <input id="patient-name" type="text" placeholder="e.g. Jane Smith"
+          class="w-full bg-white/[0.05] border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-slate-200
+                 placeholder-slate-600 focus:outline-none focus:border-indigo-500/50 focus:ring-1
+                 focus:ring-indigo-500/20 transition" />
+      </div>
+      <div>
+        <label for="patient-age" class="block text-xs font-medium text-slate-500 mb-1.5">Patient Age</label>
+        <input id="patient-age" type="number" min="0" max="150" placeholder="e.g. 45"
+          class="w-full bg-white/[0.05] border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-slate-200
+                 placeholder-slate-600 focus:outline-none focus:border-indigo-500/50 focus:ring-1
+                 focus:ring-indigo-500/20 transition" />
+      </div>
+    </div>
+    <p class="text-xs text-slate-600 mt-3">Stored separately from the transcript — not redacted or passed to the AI model.</p>
+  </div>
+
   <!-- Upload card -->
   <div class="glass rounded-xl p-8">
     <form id="upload-form">

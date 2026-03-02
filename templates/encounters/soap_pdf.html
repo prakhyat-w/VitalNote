@@ -123,6 +123,9 @@
 
   <!-- Encounter metadata -->
   <div class="encounter-info">
+    {% if encounter.patient_name %}
+    <div><strong>Patient:</strong> {{ encounter.patient_name }}{% if encounter.patient_age %}, {{ encounter.patient_age }} yrs{% endif %}</div>
+    {% endif %}
     <div><strong>File:</strong> {{ encounter.original_filename }}</div>
     <div><strong>Provider:</strong> {{ encounter.user.full_name }}</div>
     <div><strong>Status:</strong> Completed</div>

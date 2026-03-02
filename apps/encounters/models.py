@@ -36,6 +36,8 @@ class Encounter(models.Model):
     )
     audio_file = models.FileField(upload_to=audio_upload_path)
     original_filename = models.CharField(max_length=255)
+    patient_name = models.CharField(max_length=200, blank=True, default="")
+    patient_age = models.PositiveSmallIntegerField(null=True, blank=True)
     error_message = models.TextField(blank=True, default="")
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True)

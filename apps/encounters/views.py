@@ -80,6 +80,8 @@ class EncounterCreateAPIView(APIView):
             user=request.user,
             audio_file=audio_file,
             original_filename=audio_file.name,
+            patient_name=serializer.validated_data.get("patient_name", ""),
+            patient_age=serializer.validated_data.get("patient_age"),
         )
         process_encounter.delay(str(encounter.id))
         return Response({"id": str(encounter.id)}, status=status.HTTP_201_CREATED)

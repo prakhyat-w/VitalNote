@@ -40,6 +40,8 @@ class EncounterSerializer(serializers.ModelSerializer):
             "id",
             "status",
             "original_filename",
+            "patient_name",
+            "patient_age",
             "error_message",
             "created_at",
             "updated_at",
@@ -50,6 +52,8 @@ class EncounterSerializer(serializers.ModelSerializer):
 
 class EncounterCreateSerializer(serializers.Serializer):
     audio_file = serializers.FileField()
+    patient_name = serializers.CharField(max_length=200, required=False, allow_blank=True, default="")
+    patient_age = serializers.IntegerField(min_value=0, max_value=150, required=False, allow_null=True, default=None)
 
     def validate_audio_file(self, value):
         if value.content_type not in ALLOWED_AUDIO_TYPES:
