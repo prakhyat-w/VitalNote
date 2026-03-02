@@ -11,7 +11,10 @@ ALLOWED_AUDIO_TYPES = {
     "audio/x-m4a",
     "audio/m4a",
     "audio/ogg",
+    "audio/webm",
+    "audio/webm;codecs=opus",
     "video/mp4",
+    "video/webm",
 }
 
 
@@ -51,7 +54,7 @@ class EncounterCreateSerializer(serializers.Serializer):
     def validate_audio_file(self, value):
         if value.content_type not in ALLOWED_AUDIO_TYPES:
             raise serializers.ValidationError(
-                "Unsupported file type. Please upload an MP3, WAV, or M4A file."
+                "Unsupported file type. Please upload an MP3, WAV, M4A, or WebM file."
             )
         max_size = 25 * 1024 * 1024  # 25 MB
         if value.size > max_size:
